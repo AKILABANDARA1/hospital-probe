@@ -65,9 +65,9 @@ def dashboard():
     metrics_html = "<p><em>No metrics received yet.</em></p>"
     if metrics_data:
         metrics_html = f"""
-        <div style="background:#1e2a58; padding:1rem 2rem; border-radius:8px; max-width:650px; margin-top:2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3); color:#a1c0ff; font-family: 'Roboto Mono', monospace;">
-          <h2 style="color:#4a90e2; margin-top:0;">Latest Hospital VM Metrics</h2>
-          <ul style="list-style:none; padding-left:0;">
+        <div class="card">
+          <div class="metrics-title">Latest Hospital VM Metrics</div>
+          <ul>
             <li><strong>OS:</strong> {metrics_data.get('os', 'N/A')}</li>
             <li><strong>CPU Usage:</strong> {metrics_data.get('cpu_percent', 'N/A')}%</li>
             <li><strong>RAM Used:</strong> {metrics_data.get('ram_used_mb', 'N/A')} MB / {metrics_data.get('ram_total_mb', 'N/A')} MB</li>
@@ -83,69 +83,95 @@ def dashboard():
       <title>Hospital Prober Dashboard</title>
       <meta http-equiv="refresh" content="10" />
       <style>
-        @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Roboto+Mono&display=swap');
+
+        * {{
+          box-sizing: border-box;
+        }}
 
         body {{
           margin: 0;
-          background: #121f3d;
-          color: #c8d7ff;
-          font-family: 'Roboto Mono', monospace;
+          padding: 2rem;
+          font-family: 'Inter', sans-serif;
+          background: linear-gradient(145deg, #0f172a, #1e293b);
+          color: #e2e8f0;
           display: flex;
           flex-direction: column;
           align-items: center;
           min-height: 100vh;
-          padding: 2rem;
         }}
 
         h1 {{
+          font-size: 2.5rem;
           margin-bottom: 0.25rem;
-          font-weight: 700;
-          color: #4a90e2;
-          letter-spacing: 1px;
+          color: #60a5fa;
         }}
 
         .timestamp {{
-          margin-bottom: 1.5rem;
-          font-size: 0.9rem;
-          color: #a1b9ff;
-          font-style: italic;
+          font-size: 0.95rem;
+          color: #94a3b8;
+          margin-bottom: 2rem;
+        }}
+
+        .card {{
+          background: #1e293b;
+          border-radius: 12px;
+          padding: 1.5rem 2rem;
+          margin-bottom: 2rem;
+          max-width: 700px;
+          width: 100%;
+          box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+          transition: transform 0.2s;
+        }}
+
+        .card:hover {{
+          transform: translateY(-2px);
         }}
 
         ul {{
           list-style: none;
-          padding: 1rem 2rem;
-          background: #1e2a58;
-          border-radius: 8px;
-          box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-          max-width: 650px;
-          width: 100%;
+          padding: 0;
+          margin: 0;
         }}
 
         li {{
-          padding: 0.5rem 0;
-          border-bottom: 1px solid #3657a3;
-          line-height: 1.4;
+          padding: 0.75rem 0;
+          border-bottom: 1px solid #334155;
+          font-size: 1rem;
+          line-height: 1.6;
         }}
 
         li:last-child {{
           border-bottom: none;
         }}
 
-        p {{
-          margin-top: 2rem;
+        .metrics-title {{
+          color: #38bdf8;
+          font-size: 1.5rem;
+          margin-bottom: 1rem;
+        }}
+
+        .footer {{
           font-size: 0.85rem;
-          color: #7c98d9;
+          color: #64748b;
+          margin-top: auto;
+          margin-top: 3rem;
         }}
       </style>
     </head>
     <body>
       <h1>Hospital Prober Dashboard</h1>
       <div class="timestamp">Last probe run: {probe_results.get('last_run', 'N/A')}</div>
-      <ul>
-        {"".join(f"<li>{r}</li>" for r in probe_results.get('results', []))}
-      </ul>
+      
+      <div class="card">
+        <ul>
+          {"".join(f"<li>{r}</li>" for r in probe_results.get('results', []))}
+        </ul>
+      </div>
+
       {metrics_html}
-      <p>Page auto-refreshes every 10 seconds.</p>
+
+      <div class="footer">Page auto-refreshes every 10 seconds.</div>
     </body>
     </html>
     """
