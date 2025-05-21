@@ -4,7 +4,7 @@ import time
 import random
 import threading
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 
 TARGET_IP = "172.210.155.65"
@@ -16,6 +16,8 @@ probe_results = {
     "last_run": None,
     "results": []
 }
+
+metrics_data = {}
 
 def tcp_check(ip, port):
     try:
@@ -52,8 +54,29 @@ threading.Thread(target=run_probe_loop, daemon=True).start()
 def health():
     return {"status": "ok"}
 
+@app.post("/metrics")
+async def receive_metrics(data: dict):
+    global metrics_data
+    metrics_data = data
+    return {"status": "received"}
+
 @app.get("/", response_class=HTMLResponse)
 def dashboard():
+    metrics_html = "<p><em>No metrics received yet.</em></p>"
+    if metrics_data:
+        metrics_html = f"""
+        <div style="background:#1e2a58; padding:1rem 2rem; border-radius:8px; max-width:650px; margin-top:2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3); color:#a1c0ff; font-family: 'Roboto Mono', monospace;">
+          <h2 style="color:#4a90e2; margin-top:0;">Latest Hospital VM Metrics</h2>
+          <ul style="list-style:none; padding-left:0;">
+            <li><strong>OS:</strong> {metrics_data.get('os', 'N/A')}</li>
+            <li><strong>CPU Usage:</strong> {metrics_data.get('cpu_percent', 'N/A')}%</li>
+            <li><strong>RAM Used:</strong> {metrics_data.get('ram_used_mb', 'N/A')} MB / {metrics_data.get('ram_total_mb', 'N/A')} MB</li>
+            <li><strong>Disk Used:</strong> {metrics_data.get('disk_used_gb', 'N/A')} GB / {metrics_data.get('disk_total_gb', 'N/A')} GB</li>
+            <li><strong>Timestamp:</strong> {metrics_data.get('timestamp', 'N/A')}</li>
+          </ul>
+        </div>
+        """
+
     html_content = f"""
     <html>
     <head>
@@ -121,6 +144,7 @@ def dashboard():
       <ul>
         {"".join(f"<li>{r}</li>" for r in probe_results.get('results', []))}
       </ul>
+      {metrics_html}
       <p>Page auto-refreshes every 10 seconds.</p>
     </body>
     </html>
