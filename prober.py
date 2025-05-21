@@ -60,7 +60,7 @@ def dashboard():
     <html>
     <head>
       <title>Prober Dashboard</title>
-      <meta http-equiv="refresh" content="20" />
+      <meta http-equiv="refresh" content="10" />
       <style>
         body {{ font-family: Arial, sans-serif; padding: 2em; }}
         h1 {{ color: #2a9d8f; }}
@@ -75,7 +75,7 @@ def dashboard():
       <ul>
         {"".join(f"<li>{r}</li>" for r in probe_results.get("results", []))}
       </ul>
-      <p>Page auto-refreshes every 20 seconds.</p>
+      <p>Page auto-refreshes every 10 seconds.</p>
     </body>
     </html>
     """
