@@ -4,13 +4,13 @@ import time
 import random
 import threading
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
+
+app = FastAPI()
 
 TARGET_IP = "20.109.32.217"
 HTTP_PORTS = [80, 443]
-
-app = FastAPI()
 
 probe_results = {
     "last_run": None,
@@ -19,6 +19,7 @@ probe_results = {
 
 metrics_data = {}
 
+# TCP Port Check
 def tcp_check(ip, port):
     try:
         with socket.create_connection((ip, port), timeout=3):
@@ -26,6 +27,7 @@ def tcp_check(ip, port):
     except Exception as e:
         return f"TCP port {port} closed ({e})"
 
+# HTTP/S Head Request
 def http_check(ip, port):
     try:
         scheme = "https" if port == 443 else "http"
@@ -37,6 +39,7 @@ def http_check(ip, port):
     except Exception as e:
         return f"HTTP check failed on port {port} ({e})"
 
+# Background Probe Loop
 def run_probe_loop():
     while True:
         results = []
@@ -55,10 +58,14 @@ def health():
     return {"status": "ok"}
 
 @app.post("/metrics")
-async def receive_metrics(data: dict):
+async def receive_metrics(request: Request):
     global metrics_data
-    metrics_data = data
-    return {"status": "received"}
+    try:
+        data = await request.json()
+        metrics_data = data
+        return {"status": "received"}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
 
 @app.get("/", response_class=HTMLResponse)
 def dashboard():
@@ -83,79 +90,23 @@ def dashboard():
       <title>Hospital Prober Dashboard</title>
       <meta http-equiv="refresh" content="10" />
       <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Roboto+Mono&display=swap');
-
-        * {{
-          box-sizing: border-box;
-        }}
-
         body {{
-          margin: 0;
-          padding: 2rem;
-          font-family: 'Inter', sans-serif;
-          background: linear-gradient(145deg, #0f172a, #1e293b);
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          background-color: #1e293b;
           color: #e2e8f0;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          min-height: 100vh;
+          padding: 2rem;
         }}
-
         h1 {{
-          font-size: 2.5rem;
-          margin-bottom: 0.25rem;
           color: #60a5fa;
         }}
-
-        .timestamp {{
-          font-size: 0.95rem;
-          color: #94a3b8;
-          margin-bottom: 2rem;
-        }}
-
         .card {{
-          background: #1e293b;
-          border-radius: 12px;
-          padding: 1.5rem 2rem;
-          margin-bottom: 2rem;
-          max-width: 700px;
-          width: 100%;
-          box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-          transition: transform 0.2s;
-        }}
-
-        .card:hover {{
-          transform: translateY(-2px);
-        }}
-
-        ul {{
-          list-style: none;
-          padding: 0;
-          margin: 0;
-        }}
-
-        li {{
-          padding: 0.75rem 0;
-          border-bottom: 1px solid #334155;
-          font-size: 1rem;
-          line-height: 1.6;
-        }}
-
-        li:last-child {{
-          border-bottom: none;
-        }}
-
-        .metrics-title {{
-          color: #38bdf8;
-          font-size: 1.5rem;
+          background: #2d3748;
+          padding: 1rem 2rem;
+          border-radius: 10px;
           margin-bottom: 1rem;
         }}
-
-        .footer {{
-          font-size: 0.85rem;
-          color: #64748b;
-          margin-top: auto;
-          margin-top: 3rem;
+        li {{
+          padding: 0.5rem 0;
         }}
       </style>
     </head>
@@ -171,7 +122,7 @@ def dashboard():
 
       {metrics_html}
 
-      <div class="footer">Page auto-refreshes every 10 seconds.</div>
+      <p style="color: #64748b; margin-top: 2rem;">Page auto-refreshes every 10 seconds.</p>
     </body>
     </html>
     """
