@@ -12,7 +12,6 @@ HTTP_PORTS = [80, 443]
 
 app = FastAPI()
 
-# Shared variable for latest probe results
 probe_results = {
     "last_run": None,
     "results": []
@@ -47,7 +46,6 @@ def run_probe_loop():
         probe_results["results"] = results
         time.sleep(random.randint(15, 30))
 
-# Start probe loop in background thread
 threading.Thread(target=run_probe_loop, daemon=True).start()
 
 @app.get("/health")
@@ -59,21 +57,69 @@ def dashboard():
     html_content = f"""
     <html>
     <head>
-      <title>Prober Dashboard</title>
+      <title>Hospital Prober Dashboard</title>
       <meta http-equiv="refresh" content="10" />
       <style>
-        body {{ font-family: Arial, sans-serif; padding: 2em; }}
-        h1 {{ color: #2a9d8f; }}
-        ul {{ list-style-type: none; padding-left: 0; }}
-        li {{ margin: 0.5em 0; }}
-        .timestamp {{ color: #666; font-size: 0.9em; }}
+        @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap');
+
+        body {{
+          margin: 0;
+          background: #121f3d;
+          color: #c8d7ff;
+          font-family: 'Roboto Mono', monospace;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          min-height: 100vh;
+          padding: 2rem;
+        }}
+
+        h1 {{
+          margin-bottom: 0.25rem;
+          font-weight: 700;
+          color: #4a90e2;
+          letter-spacing: 1px;
+        }}
+
+        .timestamp {{
+          margin-bottom: 1.5rem;
+          font-size: 0.9rem;
+          color: #a1b9ff;
+          font-style: italic;
+        }}
+
+        ul {{
+          list-style: none;
+          padding: 1rem 2rem;
+          background: #1e2a58;
+          border-radius: 8px;
+          box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+          max-width: 650px;
+          width: 100%;
+        }}
+
+        li {{
+          padding: 0.5rem 0;
+          border-bottom: 1px solid #3657a3;
+          line-height: 1.4;
+        }}
+
+        li:last-child {{
+          border-bottom: none;
+        }}
+
+        p {{
+          margin-top: 2rem;
+          font-size: 0.85rem;
+          color: #7c98d9;
+        }}
       </style>
     </head>
     <body>
       <h1>Hospital Prober Dashboard</h1>
       <div class="timestamp">Last probe run: {probe_results.get('last_run', 'N/A')}</div>
       <ul>
-        {"".join(f"<li>{r}</li>" for r in probe_results.get("results", []))}
+        {"".join(f"<li>{r}</li>" for r in probe_results.get('results', []))}
       </ul>
       <p>Page auto-refreshes every 10 seconds.</p>
     </body>
