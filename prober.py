@@ -4,7 +4,7 @@ import time
 import random
 import threading
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 
 TARGET_IP = "172.210.155.65"
