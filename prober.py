@@ -7,7 +7,7 @@ import threading
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 
-TARGET_IP = "172.210.155.65"
+TARGET_IP = "20.109.32.217"
 HTTP_PORTS = [80, 443]
 
 app = FastAPI()
