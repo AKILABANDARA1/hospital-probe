@@ -41,21 +41,44 @@ def http_check(ip, port):
 
 # Background Probe Loop
 def run_probe_loop():
+    success_logged = False  # Track if success message was printed
+
     while True:
         results = []
+        successful_probe = False
+
         for port in HTTP_PORTS:
             tcp_status = tcp_check(TARGET_IP, port)
             http_status = http_check(TARGET_IP, port)
             results.append(f"{tcp_status}; {http_status}")
+
+            # Check if port is open and HTTP status code is 2xx or 3xx
+            if (
+                "open" in tcp_status
+                and (
+                    http_status.find("responded with status 2") != -1
+                    or http_status.find("responded with status 3") != -1
+                )
+            ):
+                successful_probe = True
+
         probe_results["last_run"] = time.strftime("%Y-%m-%d %H:%M:%S")
         probe_results["results"] = results
+
+        if successful_probe and not success_logged:
+            print(f"[{probe_results['last_run']}] Successfully pinged IP {TARGET_IP} on HTTP ports {HTTP_PORTS}")
+            success_logged = True
+
         time.sleep(random.randint(15, 30))
 
+
 threading.Thread(target=run_probe_loop, daemon=True).start()
+
 
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
 
 @app.post("/metrics")
 async def receive_metrics(request: Request):
@@ -66,6 +89,7 @@ async def receive_metrics(request: Request):
         return {"status": "received"}
     except Exception as e:
         return {"status": "error", "error": str(e)}
+
 
 @app.get("/", response_class=HTMLResponse)
 def dashboard():
